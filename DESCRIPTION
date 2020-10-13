@@ -1,0 +1,14 @@
+Package: mixBag
+Title: Collection of miscellaneous useful utility functions
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Arafath",
+           family = "Hossain",
+           role = c("aut", "cre"),
+           email = "a.h.fahad90@gmail.com")
+Description: This package contains several utility functions that are used frequently in predictive modeling projects.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
