@@ -19,7 +19,9 @@ Imports:
     rlang (>= 0.1.2),
     tibble,
     dplyr,
-    utils
+    utils,
+    ggplot2,
+    ggthemes
 Suggests: 
     tidyverse,
     knitr,
