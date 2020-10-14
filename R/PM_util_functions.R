@@ -60,63 +60,103 @@ quant_plot = function(data, x_feat, y_feat, quantile = 4){
 }
 
 
-# BINARY PREDICTION PERFORMACNE WITH CHANGING ONE VARIABLE ----
+# FIT AND COMPARE MULTIPLE CLASSIFIER ----
 
+#' Comparing Classifiers' Performance
 #'
+#' @description Fits five commonly used classifiers on data and compare their performance based on AROC.
 #'
-#' @description A function that takes the inputs and spits out a plot showing changes in prediction based on changes in one predictor
+#' @param recipe A parsnip recipe object.
+#' @param test_df Test data frame to test model performances.
+#' @param target_lab Positive label used in the target feature.
 #'
-#' @param: data      Data frame object that contains predictors + ID
-#' @param: model     Model object name that needs to be fit
-#' @param: ID        ID (numeric) of the case that we want to use for experiment
-#' @param: test_feat Numeric predictor name (String) that we want to experiment with
-#' @param: breaks    Interval point at which the test features is to be broken into (e.g. breaks = 2, will split 0:6 series like this: 0, 2, 4, 6)
+#' @details
+#'  - Make sure the recipe object entered is at pre-prepped stage
+#'  - Five models compared are: logistic regression, elastic net, random forest, support vector machine, xtreme gradient boosting.
 #'
-#'  @return:          A plot that shows how the prediction changes when one predictor changes keeping all other predictors same
+#' @return Returns following two things:
+#'  - A line plot showing comparative area under the ROC curve score
+#'  - A tiblle containing the test data along with the predicted probability calculated by the five classifiers.
+#'
+#' @examples
+#'   library(tidymodels)
+#'   split <- rsample::initial_split(wine, strata = quality_bin)
+#'   train <- rsample::training(split)
+#'   test <- rsample::testing(split)
+#'   recipe <- recipes::recipe(quality_bin ~ ., data = train) %>%
+#'   step_string2factor(all_nominal()) %>%
+#'   step_knnimpute(all_predictors()) %>%
+#'   step_normalize(all_numeric())
+#'
+#'   compare_classifiers(recipe = recipe, test_df = test, target_lab = 1)
+#'
+#' @export
+compare_classifiers = function(recipe, test_df, target_lab = Y){
+  rec_prep = recipes::prep({{recipe}})
+  target <-  stats::formula(rec_prep)[2] %>% as.character()
+  form = stats::formula(rec_prep)
+  train = rec_prep %>% recipes::juice()
+  test = recipes::bake(rec_prep, new_data = {{test_df}})
+  target_lab <- rlang::enquo(target_lab) %>% rlang::get_expr()
 
-prediction_variation = function(data, model, ID, test_feat, ID_feat_name = "EMPLID", breaks = 100, isMatrix = TRUE){
 
-  # taking the data from the corresponding ID
-  sample = data %>%
-    filter(!!rlang::sym(ID_feat_name) == ID)
+  # fitting models
+  message('fitting logit model...')
+  log_reg <-  parsnip::logistic_reg() %>%  parsnip::set_engine("glm") %>%
+    parsnip::fit(form , data = train)
 
-  # creating a dataframe combining sample case and multiple values of the desired test feature
-  message("Creating dataframe for the experiment")
-  df = seq(min(data[,test_feat]),
-           max(data[,test_feat]), breaks) %>%
-    data.frame() %>%
-    structure(names = c(test_feat)) %>%
-    bind_rows(sample) %>%
-    tidyr::fill(names(.), .direction = "up") %>%
-    distinct()
+  message('fitting elastic net...')
+  glm_reg <- parsnip::logistic_reg(penalty = 0.05) %>% parsnip::set_engine("glmnet") %>%
+    parsnip::fit(form , data = train)
 
-  # organizing dataframe to match the training set that was used to train the model
-  df = df[, c(names(sample))]
-  df_mat = df %>%
-    select(-EMPLID)  %>% data.matrix() %>% xgb.DMatrix()
+  message('fitting random forest...')
+  rforest <- parsnip::rand_forest() %>% parsnip::set_engine("ranger") %>% parsnip::set_mode("classification") %>%
+    parsnip::fit(form , data = train)
 
-  # if(isMatrix){
-  #   df = df %>% data.matrix() %>% xgb.DMatrix()
-  # }
+  message('fitting xtreeme gradient boosting...')
+  xgbModel <- parsnip::boost_tree() %>% parsnip::set_engine("xgboost") %>% parsnip::set_mode("classification") %>%
+    parsnip::fit(form , data = train)
 
-  # calculating prediction on the experiment data
-  message("Printing the plot")
-  plot = predict(model, df_mat) %>%
-    as.data.frame() %>%
-    structure( names = c("pred_prob")) %>%
-    # adding columns from the experient data to prediction
-    bind_cols(df) %>%
-    # creating visualization
-    ggplot(aes_string(test_feat, "pred_prob")) +
-    geom_line(color = "#000099", size = 0.1) +
-    geom_point(color = "#CC0000", size = .5) +
-    expand_limits(y = c(0,1)) +
-    theme_light() +
-    labs(title = paste0(test_feat, " curve")) +
-    ylab("Predicted Probability") +
-    ggthemes::theme_tufte()
+  message('fitting support vector machine...')
+  svmRbf <- parsnip::svm_rbf() %>% parsnip::set_engine("kernlab") %>% parsnip::set_mode("classification") %>%
+    parsnip::fit(form , data = train)
 
-  # printing as an interactive plotly plot
-  plot %>%
-    ggplotly()
+  # COMPARING PERFORMANCE
+  message('calculating predictions')
+  pred_col <- paste0(".pred_", target_lab)
+
+  pred_test <<-  {{test_df}} %>%
+    cbind(stats::predict(log_reg, new_data = test, type = "prob") %>%
+            dplyr::select(pred_col) %>% dplyr::rename(log_reg_y = pred_col)) %>%
+    cbind(stats::predict(glm_reg, new_data = test, type = "prob") %>%
+            dplyr::select(pred_col) %>% dplyr::rename(glm_reg_y = pred_col)) %>%
+    cbind(stats::predict(rforest, new_data = test, type = "prob") %>%
+            dplyr::select(pred_col) %>% dplyr::rename(rforest_y = pred_col)) %>%
+    cbind(stats::predict(xgbModel, new_data = test, type = "prob") %>%
+            dplyr::select(pred_col) %>% dplyr::rename(xgbModel_y = pred_col)) %>%
+    cbind(stats::predict(svmRbf, new_data = test, type = "prob") %>%
+            dplyr::select(pred_col) %>% dplyr::rename(svmRbf_y = pred_col))
+
+  pred_test[, target] <- as.factor(pred_test[, target])
+
+  # PLOTTING PERFORMANCE METRIC !! replace DROPOUT_IND to make it dynamic variable
+  message('plotting performance curves')
+  yardstick::roc_auc(data = pred_test, truth = !!target, log_reg_y, event_level = "second") %>%
+    rbind(yardstick::roc_auc(data = pred_test, truth = !!target, glm_reg_y, event_level = "second")) %>%
+    rbind(yardstick::roc_auc(data = pred_test, truth = !!target, rforest_y, event_level = "second")) %>%
+    rbind(yardstick::roc_auc(data = pred_test, truth = !!target, xgbModel_y, event_level = "second")) %>%
+    rbind(yardstick::roc_auc(data = pred_test, truth = !!target, svmRbf_y, event_level = "second")) %>%
+    cbind(model = c('logit_model', 'elastic_net', 'random_forest', 'xgboost', 'svm_rbf')) %>%
+    ggplot2::ggplot(ggplot2::aes(.estimate, stats::reorder(model, .estimate))) +
+    ggplot2::geom_segment(ggplot2::aes(xend = 0, yend = model),
+                          show.legend = F) +
+    ggplot2::geom_point(ggplot2::aes(size = .estimate),
+                        show.legend = F) +
+    ggplot2::geom_label(ggplot2::aes(label = round(.estimate, 2), size = 5),
+                        fill = "white",
+                        hjust = "inward",
+                        show.legend = F) +
+    ggplot2::labs(x = "Area under ROC curve", y = "Model Names") +
+    ggplot2::theme_minimal()
+
 }
