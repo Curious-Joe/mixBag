@@ -198,7 +198,7 @@ compare_classifiers = function(recipe, test_df, target_lab = Y){
 #'   step_knnimpute(all_predictors()) %>%
 #'   step_normalize(all_numeric())
 #'
-#'   compare_tuned_classifiers(recipe = recipe, test_df = test, target_lab = 1, parallel = TRUE)
+#'   compare_tuned_classifiers(recipe = recipe, test_df = test, target_lab = 1, parallel = FALSE)
 #'
 #' @export
 compare_tuned_classifiers = function(recipe, test_df, target_lab = 1, cv_fold_n = 5, tune_n = 10, parallel = FALSE){

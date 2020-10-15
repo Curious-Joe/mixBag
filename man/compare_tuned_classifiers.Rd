@@ -57,6 +57,6 @@ Fits and tune hyper-parameters of five commonly used classifiers on data and com
   step_knnimpute(all_predictors()) \%>\%
   step_normalize(all_numeric())
 
-  compare_tuned_classifiers(recipe = recipe, test_df = test, target_lab = 1, parallel = TRUE)
+  compare_tuned_classifiers(recipe = recipe, test_df = test, target_lab = 1, parallel = FALSE)
 
 }
