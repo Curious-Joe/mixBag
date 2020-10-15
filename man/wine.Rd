@@ -5,7 +5,7 @@
 \alias{wine}
 \title{Wine data set}
 \format{
-An object of class \code{data.frame} with 1599 rows and 12 columns.
+An object of class \code{data.frame} with 1599 rows and 13 columns.
 }
 \usage{
 wine

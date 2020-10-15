@@ -35,6 +35,7 @@ Fits five commonly used classifiers on data and compare their performance based 
   train <- rsample::training(split)
   test <- rsample::testing(split)
   recipe <- recipes::recipe(quality_bin ~ ., data = train) \%>\%
+  update_role(ID, new_role = 'identification') \%>\%
   step_string2factor(all_nominal()) \%>\%
   step_knnimpute(all_predictors()) \%>\%
   step_normalize(all_numeric())
