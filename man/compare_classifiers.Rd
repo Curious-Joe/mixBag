@@ -11,13 +11,13 @@ compare_classifiers(recipe, test_df, target_lab = Y)
 
 \item{test_df}{Test data frame to test model performances.}
 
-\item{target_lab}{Positive label used in the target feature.}
+\item{target_lab}{Label used in the target feature to indicate positive outcome. Default value is Y.}
 }
 \value{
 Returns following two things:
 \itemize{
 \item A line plot showing comparative area under the ROC curve score
-\item A tiblle containing the test data along with the predicted probability calculated by the five classifiers.
+\item A tibble containing the test data along with the predicted probability calculated by the five classifiers.
 }
 }
 \description{

@@ -30,7 +30,9 @@ Imports:
     glmnet,
     xgboost,
     kernlab,
-    ranger
+    ranger,
+    tune,
+    doParallel
 Suggests: 
     tidyverse,
     tidymodels,
