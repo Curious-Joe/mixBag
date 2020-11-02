@@ -26,6 +26,9 @@
 
 quant_plot = function(data, x_feat, y_feat, quantile = 4){
 
+  x_str <- rlang::enquo(x_feat) %>% rlang::get_expr()
+  y_str <- rlang::enquo(y_feat) %>% rlang::get_expr()
+
   Q = dplyr::pull(data, {{x_feat}}) %>%
     stats::quantile(probs = seq(0, 1, 1/quantile))
 
@@ -49,12 +52,12 @@ quant_plot = function(data, x_feat, y_feat, quantile = 4){
 
   data %>%
     dplyr::count({{y_feat}}, TILES) %>%
-    # add_count(TILES, wt = n, name = 'TILE_TOTAL') %>%
     dplyr::group_by(TILES) %>%
     dplyr::mutate(PERCENT = n/sum(n)) %>%
     ggplot2::ggplot(ggplot2::aes(x = TILES, y = PERCENT, group = {{y_feat}}, color = {{y_feat}})) +
     ggplot2::geom_point() +
     ggplot2::geom_line()  +
+    ggplot2::labs(title = paste0("Ratio of ", y_str, " Categories in ", quantile, " Quantile Groups of ", x_str)) +
     ggplot2::theme_minimal()
 
 }
