@@ -254,7 +254,7 @@ compare_tuned_classifiers = function(recipe, test_df, target_lab = 1, cv_fold_n 
   message('tuning random forest')
   rf_cv_results_tbl <<- tune::tune_grid(
     rforest,
-    {{recipe}},
+    form,
     resamples = cv_folds,
     grid      = tune_n,
     metrics   = yardstick::metric_set(roc_auc, f_meas, bal_accuracy, pr_auc),
@@ -274,7 +274,7 @@ compare_tuned_classifiers = function(recipe, test_df, target_lab = 1, cv_fold_n 
   message('tuning support vector machine')
   svm_cv_results_tbl <<- tune::tune_grid(
     svmRbf,
-    {{recipe}},
+    form,
     resamples = cv_folds,
     grid      = tune_n,
     metrics   = yardstick::metric_set(roc_auc, f_meas, bal_accuracy, pr_auc),
@@ -330,7 +330,9 @@ compare_tuned_classifiers = function(recipe, test_df, target_lab = 1, cv_fold_n 
                         fill = "white",
                         hjust = "inward",
                         show.legend = F) +
-    ggplot2::labs(x = "Area under ROC curve", y = "Model Names") +
+    ggplot2::labs(x = "Area under ROC curve", y = "Model Names",
+                  title = "Comparative performance of the tuned models",
+                  subtitle = "Performance is measured on testing data") +
     ggplot2::theme_minimal()
 
 }
