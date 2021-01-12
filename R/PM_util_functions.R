@@ -330,7 +330,9 @@ compare_tuned_classifiers = function(recipe, test_df, target_lab = 1, cv_fold_n 
                         fill = "white",
                         hjust = "inward",
                         show.legend = F) +
-    ggplot2::labs(x = "Area under ROC curve", y = "Model Names") +
+    ggplot2::labs(x = "Area under ROC curve", y = "Model Names",
+                  title = "Comparative performance of the tuned models",
+                  subtitle = "Performance is measured on testing data") +
     ggplot2::theme_minimal()
 
 }
