@@ -222,7 +222,7 @@ compare_tuned_classifiers = function(recipe, test_df, target_lab = 1, cv_fold_n 
     parsnip::set_engine("glmnet")
 
   rforest <- parsnip::rand_forest(mtry = tune::tune(), min_n = tune::tune()) %>%
-    parsnip::set_engine("ranger") %>% parsnip::set_mode("classification")
+    parsnip::set_engine("ranger", importance = "permutation") %>% parsnip::set_mode("classification")
 
   xgbModel <- parsnip::boost_tree(min_n = tune::tune(), tree_depth = tune::tune(), learn_rate = tune::tune()) %>%
     parsnip::set_engine("xgboost") %>% parsnip::set_mode("classification")
@@ -254,7 +254,7 @@ compare_tuned_classifiers = function(recipe, test_df, target_lab = 1, cv_fold_n 
   message('tuning random forest')
   rf_cv_results_tbl <<- tune::tune_grid(
     rforest,
-    {{recipe}},
+    form,
     resamples = cv_folds,
     grid      = tune_n,
     metrics   = yardstick::metric_set(roc_auc, f_meas, bal_accuracy, pr_auc),
@@ -274,7 +274,7 @@ compare_tuned_classifiers = function(recipe, test_df, target_lab = 1, cv_fold_n 
   message('tuning support vector machine')
   svm_cv_results_tbl <<- tune::tune_grid(
     svmRbf,
-    {{recipe}},
+    form,
     resamples = cv_folds,
     grid      = tune_n,
     metrics   = yardstick::metric_set(roc_auc, f_meas, bal_accuracy, pr_auc),
