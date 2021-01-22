@@ -204,12 +204,16 @@ compare_classifiers = function(recipe, test_df, target_lab = Y){
 #'   compare_tuned_classifiers(recipe = recipe, test_df = test, target_lab = 1, parallel = FALSE)
 #'
 #' @export
-compare_tuned_classifiers = function(recipe, test_df, target_lab = 1, cv_fold_n = 5, tune_n = 10, parallel = FALSE){
+compare_tuned_classifiers = function(recipe, train_df = NULL, test_df, tune_metric = "f_meas", target_lab = 1, cv_fold_n = 5, tune_n = 10, parallel = FALSE){
 
   rec_prep = recipes::prep({{recipe}})
   target <-  stats::formula(rec_prep)[2] %>% as.character()
   form = stats::formula(rec_prep)
-  train = rec_prep %>% recipes::juice()
+  train <- if(is.null(train_df)){
+    rec_prep %>% recipes::juice()
+  } else{
+    train_df
+  }
   test = recipes::bake(rec_prep, new_data = {{test_df}})
   target_lab <- rlang::enquo(target_lab) %>% rlang::get_expr()
 
@@ -283,16 +287,16 @@ compare_tuned_classifiers = function(recipe, test_df, target_lab = 1, cv_fold_n 
 
 
   message('fitting best performing models')
-  glm_reg_final <<- glm_reg %>% tune::finalize_model(parameters =  tune::select_best(glm_cv_results_tbl, "roc_auc")) %>%
+  glm_reg_final <<- glm_reg %>% tune::finalize_model(parameters =  tune::select_best(glm_cv_results_tbl, tune_metric)) %>%
     parsnip::fit(formula = form, data    = train)
 
-  rforest_final <<- rforest %>% tune::finalize_model(parameters =  tune::select_best(rf_cv_results_tbl, "roc_auc")) %>%
+  rforest_final <<- rforest %>% tune::finalize_model(parameters =  tune::select_best(rf_cv_results_tbl, tune_metric)) %>%
     parsnip::fit(formula = form, data    = train)
 
-  xgbModel_final <<- xgbModel %>% tune::finalize_model(parameters =  tune::select_best(xgb_cv_results_tbl, "roc_auc")) %>%
+  xgbModel_final <<- xgbModel %>% tune::finalize_model(parameters =  tune::select_best(xgb_cv_results_tbl, tune_metric)) %>%
     parsnip::fit(formula = form, data    = train)
 
-  svmRbf_final <<- svmRbf %>% tune::finalize_model(parameters =  tune::select_best(svm_cv_results_tbl, "roc_auc")) %>%
+  svmRbf_final <<- svmRbf %>% tune::finalize_model(parameters =  tune::select_best(svm_cv_results_tbl, tune_metric)) %>%
     parsnip::fit(formula = form, data    = train)
 
 
@@ -330,7 +334,7 @@ compare_tuned_classifiers = function(recipe, test_df, target_lab = 1, cv_fold_n 
                         fill = "white",
                         hjust = "inward",
                         show.legend = F) +
-    ggplot2::labs(x = "Area under ROC curve", y = "Model Names",
+    ggplot2::labs(x = paste0("Metric used: ", tune_metric), y = "Model Names",
                   title = "Comparative performance of the tuned models",
                   subtitle = "Performance is measured on testing data") +
     ggplot2::theme_minimal()

@@ -6,7 +6,9 @@
 \usage{
 compare_tuned_classifiers(
   recipe,
+  train_df = NULL,
   test_df,
+  tune_metric = "f_meas",
   target_lab = 1,
   cv_fold_n = 5,
   tune_n = 10,
