@@ -18,6 +18,8 @@ compare_tuned_classifiers(
 \arguments{
 \item{recipe}{A parsnip recipe object.}
 
+\item{train_df}{Train data frame to train the models on. If no train_df is provided the function will try to extract training data from recipe.}
+
 \item{test_df}{Test data frame to test model performances.}
 
 \item{target_lab}{Label used in the target feature to indicate positive outcome. Default value is Y.}
@@ -27,6 +29,8 @@ compare_tuned_classifiers(
 \item{tune_n}{How many total combination of the hyper-parameter values to be tried. Default value is 10.}
 
 \item{parallel}{Want to run the function using parallel? Default mode is FALSE.}
+
+\item{train_metric}{Name of the metric that needs to be used to tune models. Available metric names = "roc_auc", "f_meas", "bal_accuracy", "pr_auc". Default value = "f_meas".}
 }
 \value{
 Returns following outputs:
@@ -59,6 +63,6 @@ Fits and tune hyper-parameters of five commonly used classifiers on data and com
   step_knnimpute(all_predictors()) \%>\%
   step_normalize(all_numeric())
 
-  compare_tuned_classifiers(recipe = recipe, test_df = test, target_lab = 1, parallel = FALSE)
+  compare_tuned_classifiers(recipe = recipe, test_df = test, tune_metric = "f_meas", target_lab = 1, parallel = FALSE)
 
 }

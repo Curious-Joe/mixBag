@@ -172,7 +172,9 @@ compare_classifiers = function(recipe, test_df, target_lab = Y){
 #' @description Fits and tune hyper-parameters of five commonly used classifiers on data and compare their performance based on AROC.
 #'
 #' @param recipe A parsnip recipe object.
+#' @param train_df Train data frame to train the models on. If no train_df is provided the function will try to extract training data from recipe.
 #' @param test_df Test data frame to test model performances.
+#' @param train_metric Name of the metric that needs to be used to tune models. Available metric names = "roc_auc", "f_meas", "bal_accuracy", "pr_auc". Default value = "f_meas".
 #' @param target_lab Label used in the target feature to indicate positive outcome. Default value is Y.
 #' @param cv_fold_n How many folds to be used for cross validation. Default value is 5.
 #' @param tune_n How many total combination of the hyper-parameter values to be tried. Default value is 10.
@@ -201,7 +203,7 @@ compare_classifiers = function(recipe, test_df, target_lab = Y){
 #'   step_knnimpute(all_predictors()) %>%
 #'   step_normalize(all_numeric())
 #'
-#'   compare_tuned_classifiers(recipe = recipe, test_df = test, target_lab = 1, parallel = FALSE)
+#'   compare_tuned_classifiers(recipe = recipe, test_df = test, tune_metric = "f_meas", target_lab = 1, parallel = FALSE)
 #'
 #' @export
 compare_tuned_classifiers = function(recipe, train_df = NULL, test_df, tune_metric = "f_meas", target_lab = 1, cv_fold_n = 5, tune_n = 10, parallel = FALSE){
@@ -334,7 +336,7 @@ compare_tuned_classifiers = function(recipe, train_df = NULL, test_df, tune_metr
                         fill = "white",
                         hjust = "inward",
                         show.legend = F) +
-    ggplot2::labs(x = paste0("Metric used: ", tune_metric), y = "Model Names",
+    ggplot2::labs(x = "Area under ROC curve", y = "Model Names",
                   title = "Comparative performance of the tuned models",
                   subtitle = "Performance is measured on testing data") +
     ggplot2::theme_minimal()
