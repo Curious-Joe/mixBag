@@ -22,6 +22,8 @@ compare_tuned_classifiers(
 
 \item{test_df}{Test data frame to test model performances.}
 
+\item{tune_metric}{Name of the metric that needs to be used to tune models. Available metric names = "roc_auc", "f_meas", "bal_accuracy", "pr_auc". Default value = "f_meas".}
+
 \item{target_lab}{Label used in the target feature to indicate positive outcome. Default value is Y.}
 
 \item{cv_fold_n}{How many folds to be used for cross validation. Default value is 5.}
@@ -29,8 +31,6 @@ compare_tuned_classifiers(
 \item{tune_n}{How many total combination of the hyper-parameter values to be tried. Default value is 10.}
 
 \item{parallel}{Want to run the function using parallel? Default mode is FALSE.}
-
-\item{train_metric}{Name of the metric that needs to be used to tune models. Available metric names = "roc_auc", "f_meas", "bal_accuracy", "pr_auc". Default value = "f_meas".}
 }
 \value{
 Returns following outputs:

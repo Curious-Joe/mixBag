@@ -19,7 +19,7 @@ qtile_plot(data, x_feat, y_feat, quantile = 4)
 Returns three outputs:
 \enumerate{
 \item Quantile boundaries,
-\item in each quantiles based bin,
+\item Total records in each quantiles based bin,
 \item A line plot showing ratio in different bins. The output of the function can be passed to plotly to generate interactive plot
 }
 }

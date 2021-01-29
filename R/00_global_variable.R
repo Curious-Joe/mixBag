@@ -4,5 +4,6 @@ globalVariables(names = c(
   'roc_auc', 'f_meas', 'bal_accuracy', 'pr_auc',
   'glm_cv_results_tbl', 'rf_cv_results_tbl', 'svm_cv_results_tbl',
   'xgb_cv_results_tbl',
-  'glm_reg_final', 'rforest_final', 'svmRbf_final', 'xgbModel_final'
+  'glm_reg_final', 'rforest_final', 'svmRbf_final', 'xgbModel_final',
+  'x', 'colors', 'nLevels'
   ))
