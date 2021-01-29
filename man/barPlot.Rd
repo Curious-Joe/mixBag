@@ -37,6 +37,11 @@ Creates (or saves as png if asked) bar plots for all density features. Organize 
 \examples{
 
 library(tidyverse)
+barPlot(dataset = iris \%>\%
+mutate(sepal_width_cat = ifelse(Sepal.Width < mean(iris$Sepal.Width), 'Low', 'High')),
+classVar = Species,
+           order = c("virginica", "versicolor", "setosa"),
+                      colors = c("virginica" = "#32a897", "versicolor" = "#328bab", "setosa" = "#8031ad"))
 
 
 }

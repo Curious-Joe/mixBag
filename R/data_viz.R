@@ -147,11 +147,11 @@ boxPlot <- function(dataset, classVar, order = NULL, colors = NULL, loc = NULL) 
 #' @examples
 #'
 #' library(tidyverse)
-# barPlot(dataset = iris %>%
-# mutate(sepal_width_cat = ifelse(Sepal.Width < mean(iris$Sepal.Width), 'Low', 'High')),
-#      classVar = Species,
-#           order = c("virginica", "versicolor", "setosa"),
-#           colors = c("virginica" = "#32a897", "versicolor" = "#328bab", "setosa" = "#8031ad"))
+#' barPlot(dataset = iris %>%
+#' mutate(sepal_width_cat = ifelse(Sepal.Width < mean(iris$Sepal.Width), 'Low', 'High')),
+#' classVar = Species,
+#'            order = c("virginica", "versicolor", "setosa"),
+#'                       colors = c("virginica" = "#32a897", "versicolor" = "#328bab", "setosa" = "#8031ad"))
 #'
 #'
 #' @export
@@ -173,7 +173,7 @@ barPlot <- function(dataset, classVar, order = NULL, colors = NULL, barType = "d
   }
 
   # fetching categorical feature names
-  cols <- names(dplyr::select(dataset %>% dplyr::select(all_of(-x)), !where(is.numeric)))
+  cols <- names(dplyr::select(dataset %>% dplyr::select(-all_of(x)), !where(is.numeric)))
 
 {
   # fetching bar plot type
