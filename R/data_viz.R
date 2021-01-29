@@ -19,12 +19,12 @@
 #' @examples
 #'
 #' library(tidyverse)
-#' quant_plot(iris, Sepal.Length, Species, 4)
+#' qtile_plot(iris, Sepal.Length, Species, 4)
 #'
 #'
 #' @export
 
-quant_plot = function(data, x_feat, y_feat, quantile = 4){
+qtile_plot = function(data, x_feat, y_feat, quantile = 4){
 
   x_str <- rlang::enquo(x_feat) %>% rlang::get_expr()
   y_str <- rlang::enquo(y_feat) %>% rlang::get_expr()

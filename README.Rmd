@@ -18,43 +18,54 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of mixBag is to ...
+*mixBag* is a package that encapsulates several repeated tasks that a data scientist performs regularly in data analysis and modeling into some simple wrapper functions. The main goals of *mixBag* are to make repeat activities faster and more efficient.
 
 ## Installation
 
-You can install the released version of mixBag from [CRAN](https://CRAN.R-project.org) with:
-
-``` r
-install.packages("mixBag")
-```
-
-And the development version from [GitHub](https://github.com/) with:
+This package is only available in GitHub. You can install the latest development version from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("Curious-Joe/mixBag")
 ```
-## Example
+## Usage
 
-This is a basic example which shows you how to solve a common problem:
+*mixBag* has several useful functions aimed at simplifying tasks in different areas of work that a data analysis. Couple of examples are shown below:
 
-```{r example}
+### qtile_plot()
+
+Plotting percentage of different target feature labels in different quantile groups of a predictor feature.
+
+```{r example01}
 library(mixBag)
-## basic example code
+
+# plot percentage of different target labels in different quartiles of a predictor
+qtile_plot(iris,x_feat = Sepal.Length, y_feat = Species, quantile = 10)
+
+
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+### compare_classifiers()
 
-```{r cars}
-summary(cars)
+Fit 5 classifiers on a training data and compare results based on ROC on provided test data. *mixBag* model related functions rely heavily upon the suite of packages that come along with *tidymodels* package.
+
+```{r example02}
+library(tidymodels)
+library(rsample)
+split <- initial_split(wine, strata = quality_bin)
+train <- training(split)
+test <- testing(split)
+recipe <- recipe(quality_bin ~ ., data = train) %>%
+  update_role(ID, new_role = 'identification') %>%
+  step_string2factor(all_nominal()) %>%
+  step_knnimpute(all_predictors()) %>%
+  step_normalize(all_numeric())
+
+compare_classifiers(recipe = recipe, test_df = test, target_lab = 1)
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date.
+## Getting Help
 
-You can also embed plots, for example:
+For any question or bug fix feel free to send email at a.h.fahad90@gmail.com.
 
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub!

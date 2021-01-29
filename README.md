@@ -4,56 +4,96 @@
 # mixBag
 
 <!-- badges: start -->
-
 <!-- badges: end -->
 
-The goal of mixBag is to …
+*mixBag* is a package that encapsulates several repeated tasks that a
+data scientist performs regularly in data analysis and modeling into
+some simple wrapper functions. The main goals of *mixBag* are to make
+repeat activities faster and more efficient.
 
 ## Installation
 
-You can install the released version of mixBag from
-[CRAN](https://CRAN.R-project.org) with:
-
-``` r
-install.packages("mixBag")
-```
-
-And the development version from [GitHub](https://github.com/) with:
+This package is only available in GitHub. You can install the latest
+development version from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("Curious-Joe/mixBag")
 ```
 
-## Example
+## Usage
 
-This is a basic example which shows you how to solve a common problem:
+*mixBag* has several useful functions aimed at simplifying tasks in
+different areas of work that a data analysis. Couple of examples are
+shown below:
+
+### qtile\_plot()
+
+Plotting percentage of different target feature labels in different
+quantile groups of a predictor feature.
 
 ``` r
 library(mixBag)
-## basic example code
+
+# plot percentage of different target labels in different quartiles of a predictor
+qtile_plot(iris,x_feat = Sepal.Length, y_feat = Species, quantile = 10)
+#> Quantile boundaries:
+#>   0%  10%  20%  30%  40%  50%  60%  70%  80%  90% 100% 
+#> 4.30 4.80 5.00 5.27 5.60 5.80 6.10 6.30 6.52 6.90 7.90 
+#> 
+#> Quantile wise total counts:
+#> TILES
+#>  Q1  Q2  Q3  Q4  Q5  Q6  Q7  Q8  Q9 Q10 
+#>  16  16  13  20  15  15  13  12  17  13
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+<img src="man/figures/README-example01-1.png" width="100%" />
+
+### compare\_classifiers()
+
+Fit 5 classifiers on a training data and compare results based on ROC on
+provided test data. *mixBag* model related functions rely heavily upon
+the suite of packages that come along with *tidymodels* package.
 
 ``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
+library(tidymodels)
+#> -- Attaching packages ----------------------------------------- tidymodels 0.1.1 --
+#> v broom     0.7.0      v recipes   0.1.13
+#> v dials     0.0.8      v rsample   0.0.7 
+#> v dplyr     1.0.2      v tibble    3.0.3 
+#> v ggplot2   3.3.2      v tidyr     1.1.0 
+#> v infer     0.5.3      v tune      0.1.1 
+#> v modeldata 0.0.2      v workflows 0.2.0 
+#> v parsnip   0.1.3      v yardstick 0.0.7 
+#> v purrr     0.3.4
+#> -- Conflicts -------------------------------------------- tidymodels_conflicts() --
+#> x purrr::discard() masks scales::discard()
+#> x dplyr::filter()  masks stats::filter()
+#> x dplyr::lag()     masks stats::lag()
+#> x recipes::step()  masks stats::step()
+library(rsample)
+split <- initial_split(wine, strata = quality_bin)
+train <- training(split)
+test <- testing(split)
+recipe <- recipe(quality_bin ~ ., data = train) %>%
+  update_role(ID, new_role = 'identification') %>%
+  step_string2factor(all_nominal()) %>%
+  step_knnimpute(all_predictors()) %>%
+  step_normalize(all_numeric())
+
+compare_classifiers(recipe = recipe, test_df = test, target_lab = 1)
+#> fitting logit model...
+#> fitting elastic net...
+#> fitting random forest...
+#> fitting xtreeme gradient boosting...
+#> fitting support vector machine...
+#> calculating predictions
+#> plotting performance curves
 ```
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date.
+<img src="man/figures/README-example02-1.png" width="100%" />
 
-You can also embed plots, for example:
+## Getting Help
 
-<img src="man/figures/README-pressure-1.png" width="100%" />
-
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub\!
+For any question or bug fix feel free to send email at
+<a.h.fahad90@gmail.com>.
