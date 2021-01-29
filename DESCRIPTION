@@ -34,7 +34,8 @@ Imports:
     ranger,
     tune,
     doParallel,
-    randomcoloR
+    randomcoloR,
+    forcats
 Suggests: 
     tidyverse,
     tidymodels,
