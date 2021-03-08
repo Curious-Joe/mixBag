@@ -190,7 +190,7 @@ barPlot <- function(dataset, classVar, order = NULL, colors = NULL, barType = "d
               data.frame() %>%
               ggplot2::ggplot(aes_string(x=i, y="Freq", fill=x)) +
               ggplot2::geom_bar(position=barType, stat="identity") +
-              ggplot2::scale_fill_brewer(palette="Paired") +
+              ggplot2::scale_fill_manual(values = colors) +
               ggplot2::labs(title = paste0(i, " in Different Categories of ", x)) +
               ggplot2::theme_minimal()
       )
@@ -206,7 +206,7 @@ barPlot <- function(dataset, classVar, order = NULL, colors = NULL, barType = "d
         data.frame() %>%
         ggplot2::ggplot(ggplot2::aes_string(x=i, y="Freq", fill=x)) +
         ggplot2::geom_bar(position=barType, stat="identity") +
-        ggplot2::scale_fill_brewer(palette="Paired") +
+        ggplot2::scale_fill_manual(values = colors) +
         ggplot2::labs(title = paste0(i, " in Different Categories of ", x)) +
         ggplot2::theme_minimal()
       print(plot)
