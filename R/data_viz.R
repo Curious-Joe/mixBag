@@ -263,7 +263,6 @@ densePlot <- function(dataset, classVar, order = NULL, colors = NULL, loc = NULL
               ggplot2::ggplot(ggplot2::aes_string(i, fill = x, color = x)) +
               ggplot2::geom_density(alpha = 0.3, na.rm = TRUE) +
               ggplot2::scale_fill_manual(values = colors) +
-              ggplot2::scale_color_manual(values = colors) +
               ggplot2::labs(title = paste0("Distribution of ", i, " Based on ", x)) +
               ggplot2::theme_minimal())
     }
@@ -276,7 +275,6 @@ densePlot <- function(dataset, classVar, order = NULL, colors = NULL, loc = NULL
         ggplot2::ggplot(ggplot2::aes_string({i}, fill = x, color = x)) +
         ggplot2::geom_density(alpha = 0.3, na.rm = TRUE) +
         ggplot2::scale_fill_manual(values = colors) +
-        ggplot2::scale_color_manual(values = colors) +
         ggplot2::labs(title = paste0("Distribution of ", i, " Based on ", x)) +
         ggplot2::theme_minimal()
       print(plot)
