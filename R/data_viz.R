@@ -112,7 +112,7 @@ boxPlot <- function(dataset, classVar, order = NULL, colors = NULL, loc = NULL) 
     }
   } else{
     for(i in names(dplyr::select(dataset, where(is.numeric)))) {
-      png(paste0(loc, "/boxplot_", i, ".PNG"), width = 627, height = 453)
+      grDevices::png(paste0(loc, "/boxplot_", i, ".PNG"), width = 627, height = 453)
       plot <- dataset %>%
         ggplot2::ggplot(ggplot2::aes_string(x, {i}, color = x)) +
         ggplot2::geom_boxplot(show.legend = FALSE) +
@@ -121,9 +121,22 @@ boxPlot <- function(dataset, classVar, order = NULL, colors = NULL, loc = NULL) 
         ggplot2::labs(title = paste0("Distribution of ", i, " in Different ", x, " Categories")) +
         ggplot2::theme_minimal()
       print(plot)
-      dev.off()
+      grDevices::dev.off()
     }
   }
+}
+
+# BAR PLOTS FOR CATEGORICAL FEATURES SPLIT IN TARGET FEAT CATEGORIS ----
+
+
+#' A util function to plot a customized ggplot
+#' @noRd
+barPlot <- function(data, x, y, fill, position, colors){
+  data %>%
+    ggplot2::ggplot(aes_string(x=x, y=y, fill=fill)) +
+    ggplot2::geom_bar(position=position, stat="identity") +
+    ggplot2::scale_fill_manual(values = colors) +
+    ggplot2::labs(title = paste0(x, " in Different Categories of ", fill))
 }
 
 # BAR PLOTS FOR CATEGORICAL FEATURES SPLIT IN TARGET FEAT CATEGORIS ----
@@ -136,6 +149,7 @@ boxPlot <- function(dataset, classVar, order = NULL, colors = NULL, loc = NULL) 
 #' @param classVar Name of the target feature
 #' @param order A vector listing the target feature labels in the desired order. To use default order leave this parameter. Default value NULL.
 #' @param colors A vector listing which color to use to represent which target feature label. To have the function pick color leave this parameter. Default value NULL.
+#' @param barType A string value indicating bar plot type i.e. stack, dodge, fill.
 #' @param loc A string with the directory where you want to save the plots. If no location is provided the plots will be created and displayed but not stored as image files.
 #'
 #' @return
@@ -144,19 +158,26 @@ boxPlot <- function(dataset, classVar, order = NULL, colors = NULL, loc = NULL) 
 #' 1. If loc = NULL, returns plots and displays in the RStudio Plots window,
 #' 2. If loc has location provided, creates and saves the plots. Doesn't display in RStudio.
 #'
+#' @importFrom rlang enquo get_expr
+#' @import dplyr ggplot2
+#' @importFrom forcats fct_relevel
+#' @importFrom randomcoloR randomColor
+#' @importFrom grDevices dev.off png
+#' @importFrom rlang :=
+#'
+#'
 #' @examples
-#'
-#' library(tidyverse)
-#' barPlot(dataset = iris %>%
+#' library(dplyr)
+#' library(ggplot2)
+#' biv_bar_plot(dataset = iris %>%
 #' mutate(sepal_width_cat = ifelse(Sepal.Width < mean(iris$Sepal.Width), 'Low', 'High')),
-#' classVar = Species,
-#'            order = c("virginica", "versicolor", "setosa"),
-#'                       colors = c("virginica" = "#32a897", "versicolor" = "#328bab", "setosa" = "#8031ad"))
-#'
+#' classVar = Species)
 #'
 #' @export
+#'
 
-barPlot <- function(dataset, classVar, order = NULL, colors = NULL, barType = "dodge", loc = NULL) {
+biv_bar_plot <- function(dataset, classVar, order = NULL,
+                         colors = NULL, barType = "dodge", loc = NULL) {
 
   x <- rlang::enquo(classVar) %>% rlang::get_expr()
   nLevels <- dplyr::select(dataset, {{classVar}}) %>% unique() %>% nrow()
@@ -173,47 +194,40 @@ barPlot <- function(dataset, classVar, order = NULL, colors = NULL, barType = "d
   }
 
   # fetching categorical feature names
-  cols <- names(dplyr::select(dataset %>% dplyr::select(-all_of(x)), !where(is.numeric)))
+  cols <- names(dplyr::select(dataset %>%
+                                dplyr::select(-all_of(x)), !where(is.numeric)))
 
-{
-  # fetching bar plot type
-  if(!barType %in% c("fill", "stack", "dodge")){
-    barType = readline(prompt = "Please enter one of these options fill, stack, dodge: ")
-  }
-
-  # print("plotting...")
-  if(is.null(loc)){
-    for(i in cols) {
-      print(dataset %>%
-              dplyr::select(x, all_of(i)) %>%
-              table() %>%
-              data.frame() %>%
-              ggplot2::ggplot(aes_string(x=i, y="Freq", fill=x)) +
-              ggplot2::geom_bar(position=barType, stat="identity") +
-              ggplot2::scale_fill_manual(values = colors) +
-              ggplot2::labs(title = paste0(i, " in Different Categories of ", x)) +
-              ggplot2::theme_minimal()
-      )
+  {
+    # fetching bar plot type
+    if(!barType %in% c("fill", "stack", "dodge")){
+      barType = readline(prompt = "Please enter one of these options fill, stack, dodge: ")
     }
-  } else{
 
-    for(i in cols) {
+    # print("plotting...")
+    if(is.null(loc)){
+      for(i in cols) {
+        print(dataset %>%
+                dplyr::select(x, all_of(i)) %>%
+                table() %>%
+                data.frame() %>%
+                barPlot(x = i, y = "Freq", fill = x, position = barType, colors)
+        )
+      }
+    } else{
 
-      png(paste0(loc, "/denseplot_", i, ".PNG"), width = 627, height = 453)
-      plot <- dataset %>%
-        dplyr::select(x, i) %>%
-        table() %>%
-        data.frame() %>%
-        ggplot2::ggplot(ggplot2::aes_string(x=i, y="Freq", fill=x)) +
-        ggplot2::geom_bar(position=barType, stat="identity") +
-        ggplot2::scale_fill_manual(values = colors) +
-        ggplot2::labs(title = paste0(i, " in Different Categories of ", x)) +
-        ggplot2::theme_minimal()
-      print(plot)
-      dev.off()
+      for(i in cols) {
+
+        png(paste0(loc, "/barplot_", i, ".PNG"), width = 627, height = 453)
+        plot <- dataset %>%
+          dplyr::select(x, all_of(i)) %>%
+          table() %>%
+          data.frame() %>%
+          barPlot(x = i, y = "Freq", fill = x, position = barType, colors)
+        print(plot)
+        dev.off()
+      }
     }
   }
-}
 }
 
 # DENSITY PLOTS FOR NUMERIC FEATURES SPLIT IN TARGET FEAT CATEGORIS ----
@@ -270,7 +284,7 @@ densePlot <- function(dataset, classVar, order = NULL, colors = NULL, loc = NULL
 
     for(i in names(dplyr::select(dataset, where(is.numeric)))) {
 
-      png(paste0(loc, "/denseplot_", i, ".PNG"), width = 627, height = 453)
+      grDevices::png(paste0(loc, "/denseplot_", i, ".PNG"), width = 627, height = 453)
       plot <- dataset %>%
         ggplot2::ggplot(ggplot2::aes_string({i}, fill = x, color = x)) +
         ggplot2::geom_density(alpha = 0.3, na.rm = TRUE) +
@@ -278,7 +292,7 @@ densePlot <- function(dataset, classVar, order = NULL, colors = NULL, loc = NULL
         ggplot2::labs(title = paste0("Distribution of ", i, " Based on ", x)) +
         ggplot2::theme_minimal()
       print(plot)
-      dev.off()
+      grDevices::dev.off()
     }
   }
 }

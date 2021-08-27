@@ -56,9 +56,9 @@ compare_classifiers = function(recipe, test_df, target_lab = Y){
   xgbModel <- parsnip::boost_tree() %>% parsnip::set_engine("xgboost") %>% parsnip::set_mode("classification") %>%
     parsnip::fit(form , data = train)
 
-  message('fitting support vector machine...')
-  svmRbf <- parsnip::svm_rbf() %>% parsnip::set_engine("kernlab") %>% parsnip::set_mode("classification") %>%
-    parsnip::fit(form , data = train)
+  # message('fitting support vector machine...')
+  # svmRbf <- parsnip::svm_rbf() %>% parsnip::set_engine("kernlab") %>% parsnip::set_mode("classification") %>%
+  #   parsnip::fit(form , data = train)
 
   # COMPARING PERFORMANCE
   message('calculating predictions')
@@ -72,9 +72,9 @@ compare_classifiers = function(recipe, test_df, target_lab = Y){
     cbind(stats::predict(rforest, new_data = test, type = "prob") %>%
             dplyr::select(pred_col) %>% dplyr::rename(rforest_y = pred_col)) %>%
     cbind(stats::predict(xgbModel, new_data = test, type = "prob") %>%
-            dplyr::select(pred_col) %>% dplyr::rename(xgbModel_y = pred_col)) %>%
-    cbind(stats::predict(svmRbf, new_data = test, type = "prob") %>%
-            dplyr::select(pred_col) %>% dplyr::rename(svmRbf_y = pred_col))
+            dplyr::select(pred_col) %>% dplyr::rename(xgbModel_y = pred_col))
+    # cbind(stats::predict(svmRbf, new_data = test, type = "prob")
+            # dplyr::select(pred_col) %>% dplyr::rename(svmRbf_y = pred_col))
 
   pred_test[, target] <- as.factor(pred_test[, target])
 
@@ -83,8 +83,8 @@ compare_classifiers = function(recipe, test_df, target_lab = Y){
     rbind(yardstick::roc_auc(data = pred_test, truth = !!target, glm_reg_y, event_level = "second")) %>%
     rbind(yardstick::roc_auc(data = pred_test, truth = !!target, rforest_y, event_level = "second")) %>%
     rbind(yardstick::roc_auc(data = pred_test, truth = !!target, xgbModel_y, event_level = "second")) %>%
-    rbind(yardstick::roc_auc(data = pred_test, truth = !!target, svmRbf_y, event_level = "second")) %>%
-    cbind(model = c('logit_model', 'elastic_net', 'random_forest', 'xgboost', 'svm_rbf')) %>%
+    # rbind(yardstick::roc_auc(data = pred_test, truth = !!target, svmRbf_y, event_level = "second")) %>%
+    cbind(model = c('logit_model', 'elastic_net', 'random_forest', 'xgboost')) %>%
     ggplot2::ggplot(ggplot2::aes(.estimate, stats::reorder(model, .estimate))) +
     ggplot2::geom_segment(ggplot2::aes(xend = 0, yend = model),
                           show.legend = F) +
@@ -168,8 +168,8 @@ compare_tuned_classifiers = function(recipe, train_df = NULL, test_df, tune_metr
   xgbModel <- parsnip::boost_tree(min_n = tune::tune(), tree_depth = tune::tune(), learn_rate = tune::tune()) %>%
     parsnip::set_engine("xgboost") %>% parsnip::set_mode("classification")
 
-  svmRbf <- parsnip::svm_rbf(cost = tune::tune(), rbf_sigma = tune::tune()) %>%
-    parsnip::set_engine("kernlab") %>% parsnip::set_mode("classification")
+  # svmRbf <- parsnip::svm_rbf(cost = tune::tune(), rbf_sigma = tune::tune()) %>%
+  #   parsnip::set_engine("kernlab") %>% parsnip::set_mode("classification")
 
   # CROSS VALIDATION
   set.seed(3333)
@@ -212,15 +212,15 @@ compare_tuned_classifiers = function(recipe, train_df = NULL, test_df, tune_metr
     control   = tune::control_grid(verbose = TRUE)
   )
 
-  message('tuning support vector machine')
-  svm_cv_results_tbl <<- tune::tune_grid(
-    svmRbf,
-    form,
-    resamples = cv_folds,
-    grid      = tune_n,
-    metrics   = yardstick::metric_set(roc_auc, f_meas, bal_accuracy, pr_auc),
-    control   = tune::control_grid(verbose = TRUE)
-  )
+  # message('tuning support vector machine')
+  # svm_cv_results_tbl <<- tune::tune_grid(
+  #   svmRbf,
+  #   form,
+  #   resamples = cv_folds,
+  #   grid      = tune_n,
+  #   metrics   = yardstick::metric_set(roc_auc, f_meas, bal_accuracy, pr_auc),
+  #   control   = tune::control_grid(verbose = TRUE)
+  # )
 
 
   message('fitting best performing models')
@@ -233,8 +233,8 @@ compare_tuned_classifiers = function(recipe, train_df = NULL, test_df, tune_metr
   xgbModel_final <<- xgbModel %>% tune::finalize_model(parameters =  tune::select_best(xgb_cv_results_tbl, tune_metric)) %>%
     parsnip::fit(formula = form, data    = train)
 
-  svmRbf_final <<- svmRbf %>% tune::finalize_model(parameters =  tune::select_best(svm_cv_results_tbl, tune_metric)) %>%
-    parsnip::fit(formula = form, data    = train)
+  # svmRbf_final <<- svmRbf %>% tune::finalize_model(parameters =  tune::select_best(svm_cv_results_tbl, tune_metric)) %>%
+  #   parsnip::fit(formula = form, data    = train)
 
 
   # COMPARING PERFORMANCE
@@ -249,9 +249,9 @@ compare_tuned_classifiers = function(recipe, train_df = NULL, test_df, tune_metr
     cbind(stats::predict(rforest_final, new_data = test, type = "prob") %>%
             dplyr::select(dplyr::all_of(pred_col)) %>% dplyr::rename(rforest_y = pred_col)) %>%
     cbind(stats::predict(xgbModel_final, new_data = test, type = "prob") %>%
-            dplyr::select(dplyr::all_of(pred_col)) %>% dplyr::rename(xgbModel_y = pred_col)) %>%
-    cbind(stats::predict(svmRbf_final, new_data = test, type = "prob") %>%
-            dplyr::select(dplyr::all_of(pred_col)) %>% dplyr::rename(svmRbf_y = pred_col))
+            dplyr::select(dplyr::all_of(pred_col)) %>% dplyr::rename(xgbModel_y = pred_col))
+    # cbind(stats::predict(svmRbf_final, new_data = test, type = "prob")
+    #         dplyr::select(dplyr::all_of(pred_col)) %>% dplyr::rename(svmRbf_y = pred_col))
 
   pred_test[, target] <- as.factor(pred_test[, target])
 
@@ -260,8 +260,8 @@ compare_tuned_classifiers = function(recipe, train_df = NULL, test_df, tune_metr
     rbind(yardstick::roc_auc(data = pred_test, truth = !!target, glm_reg_y, event_level = "second")) %>%
     rbind(yardstick::roc_auc(data = pred_test, truth = !!target, rforest_y, event_level = "second")) %>%
     rbind(yardstick::roc_auc(data = pred_test, truth = !!target, xgbModel_y, event_level = "second")) %>%
-    rbind(yardstick::roc_auc(data = pred_test, truth = !!target, svmRbf_y, event_level = "second")) %>%
-    cbind(model = c('logit_model', 'elastic_net', 'random_forest', 'xgboost', 'svm_rbf')) %>%
+    # rbind(yardstick::roc_auc(data = pred_test, truth = !!target, svmRbf_y, event_level = "second")) %>%
+    cbind(model = c('logit_model', 'elastic_net', 'random_forest', 'xgboost')) %>%
     ggplot2::ggplot(ggplot2::aes(.estimate, stats::reorder(model, .estimate))) +
     ggplot2::geom_segment(ggplot2::aes(xend = 0, yend = model),
                           show.legend = F) +
